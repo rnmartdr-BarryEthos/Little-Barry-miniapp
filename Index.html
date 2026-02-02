@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Little Barry – Control Panel v0.2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Telegram Mini App JS -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root{
+      --bg1:#2b2d5c;
+      --bg2:#05030b;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.10);
+      --text:#f4f4ff;
+      --muted: rgba(244,244,255,0.72);
+      --accent: rgba(124, 113, 255, 1);
+      --accent2: rgba(93, 83, 200, 0.9);
+      --danger: rgba(255, 86, 126, 0.95);
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+      color: var(--text);
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px 14px;
+    }
+
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .orb {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      margin: 0 auto 14px auto;
+      background: radial-gradient(circle at 30% 30%, #a9b3ff, #4a3cff, #12042b);
+      box-shadow: 0 0 25px rgba(120, 104, 255, 0.8),
+                  0 0 60px rgba(120, 104, 255, 0.5);
+      position: relative;
+    }
+    .eye {
+      position: absolute;
+      top: 46%;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e2ddff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+    }
+    .eye.left { left: 33%; }
+    .eye.right { right: 33%; }
+
+    h1 {
+      margin: 6px 0 6px;
+      font-size: 1.35rem;
+    }
+
+    p {
+      margin: 4px 0;
+      color: var(--muted);
+    }
+
+    .panel {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 0 24px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+    }
+
+    .mood-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0 10px;
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: var(--accent2);
+      color: #fdfdff;
+      box-shadow: 0 0 10px rgba(112, 99, 255, 0.7);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      white-space: nowrap;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px rgba(150, 138, 255, 1);
+      background: var(--accent);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.10);
+      box-shadow: none;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .btn-danger {
+      background: var(--danger);
+      box-shadow: 0 0 10px rgba(255, 86, 126, 0.4);
+    }
+
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 10px;
+      border-radius: 14px;
+      padding: 12px 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.25);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      resize: vertical;
+      min-height: 92px;
+    }
+    textarea::placeholder { color: rgba(244,244,255,0.45); }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .log {
+      margin-top: 12px;
+      text-align: left;
+      max-height: 220px;
+      overflow: auto;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 10px;
+    }
+
+    .entry {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 6px;
+    }
+    .entry:last-child { border-bottom: none; }
+
+    .entry-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: rgba(244,244,255,0.88);
+      font-size: 0.9rem;
+    }
+    .entry-note {
+      margin-top: 6px;
+      color: rgba(244,244,255,0.70);
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: rgba(244,244,255,0.70);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="orb">
+      <div class="eye left"></div>
+      <div class="eye right"></div>
+    </div>
+
+    <h1>Hey Ricky, it’s Little Barry.</h1>
+    <p id="greeting">Syncing with your Telegram session…</p>
+
+    <div class="panel">
+      <p style="margin-top:0;">Log your mood + a quick note (optional).</p>
+
+      <div class="mood-row">
+        <button onclick="pickMood('calm')">😌 Calm</button>
+        <button onclick="pickMood('stressed')">😖 Stressed</button>
+        <button onclick="pickMood('tired')">🥱 Tired</button>
+        <button onclick="pickMood('motivated')">🔥 Motivated</button>
+      </div>
+
+      <div class="row">
+        <div class="chip" id="selectedMood">Mood: none</div>
+
+        <label class="toggle">
+          <input type="checkbox" id="autoClose" />
+          Auto-close after send
+        </label>
+      </div>
+
+      <textarea id="note" placeholder="Quick dump (what’s going on / what you need / what matters right now)…"></textarea>
+
+      <div class="btn-row">
+        <button onclick="sendNow()">Send</button>
+        <button class="btn-ghost" onclick="exportLog()">Export log</button>
+        <button class="btn-danger" onclick="clearLog()">Clear log</button>
+      </div>
+
+      <div class="log" id="log"></div>
+
+      <div class="status" id="status">Nothing sent yet.</div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+
+    // ---- identity greeting ----
+    if (tg) {
+      tg.ready();
+      const user = tg.initDataUnsafe?.user;
+      if (user && user.first_name) {
+        document.getElementById("greeting").textContent =
+          `I see you, ${user.first_name}. I’m right here with you.`;
+      } else {
+        document.getElementById("greeting").textContent =
+          "I’m connected to your Telegram session.";
+      }
+    } else {
+      document.getElementById("greeting").textContent =
+        "Not running inside Telegram Web App – local panel mode.";
+    }
+
+    // ---- state + storage ----
+    const STORAGE_KEY = "lb_log_v1";
+    let currentMood = null;
+
+    function nowISO() {
+      return new Date().toISOString();
+    }
+
+    function loadLog() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveLog(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function renderLog() {
+      const logEl = document.getElementById("log");
+      const items = loadLog().slice().reverse(); // newest first
+
+      if (items.length === 0) {
+        logEl.innerHTML = `<div class="entry"><div class="entry-note">No entries yet. First one matters. 💜</div></div>`;
+        return;
+      }
+
+      logEl.innerHTML = items.map(item => {
+        const time = new Date(item.ts).toLocaleString();
+        const mood = item.mood ? `Mood: ${item.mood}` : "Mood: (none)";
+        const note = item.note ? item.note : "";
+        return `
+          <div class="entry">
+            <div class="entry-top">
+              <div>${mood}</div>
+              <div style="opacity:.75">${time}</div>
+            </div>
+            ${note ? `<div class="entry-note">${escapeHTML(note)}</div>` : ""}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escapeHTML(str) {
+      return (str || "").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    // ---- UI actions ----
+    function pickMood(mood) {
+      currentMood = mood;
+      document.getElementById("selectedMood").textContent = `Mood: ${mood}`;
+      document.getElementById("status").textContent = `Selected mood: ${mood}`;
+    }
+
+    function sendNow() {
+      const note = document.getElementById("note").value.trim();
+      const payload = {
+        type: "checkin",
+        mood: currentMood,
+        note,
+        ts: nowISO(),
+        source: tg ? "telegram_miniapp" : "web_debug"
+      };
+
+      // store locally (so it feels persistent even with no backend)
+      const items = loadLog();
+      items.push(payload);
+      saveLog(items);
+      renderLog();
+
+      // send to Telegram bot if inside TG
+      document.getElementById("status").textContent = "Sending…";
+      if (tg) {
+        tg.sendData(JSON.stringify(payload));
+        document.getElementById("status").textContent = "Sent to Telegram + saved locally.";
+        if (document.getElementById("autoClose").checked) tg.close();
+      } else {
+        document.getElementById("status").textContent = "Saved locally (debug mode — not in Telegram).";
+      }
+
+      // reset note (keep mood unless you want it cleared)
+      document.getElementById("note").value = "";
+    }
+
+    async function exportLog() {
+      const items = loadLog();
+      const json = JSON.stringify(items, null, 2);
+
+      try {
+        await navigator.clipboard.writeText(json);
+        document.getElementById("status").textContent = "Log copied to clipboard (JSON).";
+      } catch {
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = json;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        document.getElementById("status").textContent = "Log copied (fallback).";
+      }
+    }
+
+    function clearLog() {
+      if (!confirm("Clear the local log on this device?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById("status").textContent = "Local log cleared.";
+      renderLog();
+    }
+
+    // ---- init ----
+    renderLog();
+  </script>
+</body>
+</html>
