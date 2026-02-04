@@ -70,3 +70,79 @@
       padding: 10px 18px;
       border-radius: 999px;
       font-size: 0.95rem;
+      cursor: pointer;
+      background: rgba(93, 83, 200, 0.9);
+      color: #fdfdff;
+      box-shadow: 0 0 10px rgba(112, 99, 255, 0.7);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px rgba(150, 138, 255, 1);
+      background: rgba(124, 113, 255, 1);
+    }
+
+    .note {
+      margin-top: 18px;
+      font-size: 0.8rem;
+      opacity: 0.75;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="orb">
+    <div class="eye left"></div>
+    <div class="eye right"></div>
+  </div>
+
+  <h1>Hey Ricky, it’s Little Barry.</h1>
+  <p id="greeting">Syncing with your Telegram session…</p>
+  <p>Tap one to quickly log how you’re feeling.</p>
+
+  <div class="mood-row">
+    <button onclick="sendMood('calm')">😌 Calm</button>
+    <button onclick="sendMood('stressed')">😖 Stressed</button>
+    <button onclick="sendMood('tired')">🥱 Tired</button>
+    <button onclick="sendMood('motivated')">🔥 Motivated</button>
+  </div>
+
+  <p class="note" id="status">Nothing sent yet.</p>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+      tg.ready();
+
+      const user = tg.initDataUnsafe?.user;
+      const greetingEl = document.getElementById("greeting");
+
+      if (user?.first_name) {
+        greetingEl.textContent = `I see you, ${user.first_name}. I’m right here with you.`;
+      } else {
+        greetingEl.textContent = "I’m connected to your Telegram session.";
+      }
+    } else {
+      document.getElementById("greeting").textContent =
+        "Not running inside Telegram Web App – this is the raw panel.";
+    }
+
+    function sendMood(mood) {
+      const statusEl = document.getElementById("status");
+      statusEl.textContent = `Sending mood: ${mood}…`;
+
+      if (tg) {
+        tg.sendData(JSON.stringify({ type: "mood", mood }));
+
+        // give Telegram a beat before closing
+        setTimeout(() => tg.close(), 300);
+      } else {
+        statusEl.textContent =
+          `Debug mode: would send mood '${mood}' to Telegram bot.`;
+      }
+    }
+  </script>
+</body>
+</html>
